@@ -3,14 +3,15 @@ package com.alexdborn;
 public class LinearRegressor {
 	final double learningRate; // Rate of convergence
 	/* y = mx + b */
-	final double initialM; // Initial slope
-	final double initialB; // Initial y intercept
-	double m, b;
-	final double ittr;
-	final double[][] XYSeries = new double[2][];
-
+	private final double initialM; // Initial slope
+	private final double initialB; // Initial y intercept
+	private final double ittr;
+	private Double[][] XYSeries = new Double[2][];
+	private Boolean hasModel = false;
 	
-	LinearRegressor(double learningRate, double initialM, double initialB, double ittr, double[][] data){
+	private double m, b;
+	
+	LinearRegressor(double learningRate, double initialM, double initialB, double ittr, Double[][] data){
 		this.learningRate = learningRate;
 		this.initialM = initialM;
 		this.initialB = initialB;
@@ -21,14 +22,31 @@ public class LinearRegressor {
 		b = initialB;
 	}
 	
+	LinearRegressor(double learningRate, double initialM, double initialB, double ittr){
+		this.learningRate = learningRate;
+		this.initialM = initialM;
+		this.initialB = initialB;
+		XYSeries[0] = null;
+		XYSeries[1] = null;
+		this.ittr = ittr;
+		m = initialM;
+		b = initialB;
+	}
+	
+	public double compute(double x) {
+		return m*x + b;
+	}
+	
 	void run() {
 		System.out.printf("Gradient Descent - M:%.2f B:%.2f\nError: %.2f\n", initialM, initialB, error());
 		gradientDescent();
-		System.out.printf("Model Equation: %.2fX + %.2f\nFinal Error: %.2f\n", m, b, error());
+		hasModel = true;
+		System.out.printf("Model Equation: %.4fx + %.2f\nFinal Error: %.4f\n", m, b, error());
+		System.out.printf("Mean squared error: %f", meanSquaredError());
 	}
 	
 	private void gradientDescent() {
-		for(int i = 0; i < 100; i++) {
+		for(int i = 0; i < ittr; i++) {
 			gradientStep();
 		}
 	}
@@ -36,13 +54,19 @@ public class LinearRegressor {
 	private void gradientStep() {
 		double b_gradient = 0.0;
 		double m_gradient = 0.0;
-		int tot = XYSeries[0].length;
-		for	(int i = 0; i < tot; i++) {
-			b_gradient += -1 * (2/ (double) tot) * (XYSeries[0][i] - (m * XYSeries[1][i] + b));
-			m_gradient += -1 * (2/ (double) tot) * (XYSeries[0][i] - (m * XYSeries[1][i] + b));
+		double tot = XYSeries[0].length;
+		
+		for	(int i = 0; i < XYSeries[0].length; i++) {
+			// No X
+			m_gradient +=  XYSeries[0][i] * (XYSeries[1][i] - (m * XYSeries[0][i] + b));
+			b_gradient +=  (XYSeries[1][i] - (m * XYSeries[0][i] + b));
 		}
-		b = b - (learningRate * b_gradient);
-		m = m - (learningRate * m_gradient);
+		
+		m_gradient *= -1 * (2/tot);
+		b_gradient *= -1 * (2/tot); // Prob Positive
+		
+		b -= (learningRate * b_gradient);
+		m -= (learningRate * m_gradient);
 	}
 	
 	private double error() {
@@ -56,4 +80,23 @@ public class LinearRegressor {
 		return error / XYSeries[0].length;
 	}
 	
+	private double meanSquaredError() {
+		return Math.sqrt(error());
+	}
+
+	public double getM() {
+		return m;
+	}
+
+	public double getB() {
+		return b;
+	}
+	
+	public void setData(Double[][] data) {
+		this.XYSeries = data;
+	}
+	
+	public Boolean hasModel() {
+		return hasModel;
+	}
 }
