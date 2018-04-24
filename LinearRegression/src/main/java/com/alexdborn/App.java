@@ -17,12 +17,12 @@ import javax.swing.WindowConstants;
  * Hello world!
  *
  */
-public class App 
+public class App
 {
     public static void main( String[] args )
     {
     		/* SET UP THE MAIN WINDOW */
-    
+
 		// Construct window
 		JFrame mainWindow = new JFrame();
 		
